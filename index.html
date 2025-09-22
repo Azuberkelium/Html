@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Code Builder</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        /* Custom modal styles instead of alert() */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+        }
+        /* Styles for the explanation section */
+        .explanation-section {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            text-align: left;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 sm:p-10 rounded-2xl shadow-xl max-w-4xl w-full">
+        <h1 class="text-4xl sm:text-5xl font-bold text-center mb-6 text-indigo-600">HTML Code Builder</h1>
+        <p class="text-center text-gray-600 mb-8 max-w-prose mx-auto">Select your elements and a live preview will be generated for you, along with the HTML code.</p>
+
+        <!-- Input and selection options -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- Text Content -->
+            <div class="flex items-start">
+                <input type="checkbox" id="checkText" class="mt-1.5 mr-2 rounded text-indigo-600 focus:ring-indigo-500" checked>
+                <div class="flex flex-col flex-grow">
+                    <label for="textContent" class="text-lg font-semibold mb-2">Text to Display</label>
+                    <textarea id="textContent" placeholder="Type your text here..." class="w-full h-24 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300 resize-none"></textarea>
+                </div>
+            </div>
+
+            <!-- Background Color -->
+            <div class="flex items-start">
+                <input type="checkbox" id="checkBgColor" class="mt-1.5 mr-2 rounded text-indigo-600 focus:ring-indigo-500" checked>
+                <div class="flex flex-col flex-grow">
+                    <label for="bgColor" class="text-lg font-semibold mb-2">Background Color</label>
+                    <select id="bgColor" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300">
+                        <option value="#f0f9ff" class="text-gray-800">Light Blue</option>
+                        <option value="#f8fafc" class="text-gray-800">Light Gray</option>
+                        <option value="#dcfce7" class="text-gray-800">Light Green</option>
+                        <option value="#fef2f2" class="text-gray-800">Light Red</option>
+                        <option value="#fffbeb" class="text-gray-800">Light Yellow</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Font Color -->
+            <div class="flex items-start">
+                <input type="checkbox" id="checkFontColor" class="mt-1.5 mr-2 rounded text-indigo-600 focus:ring-indigo-500" checked>
+                <div class="flex flex-col flex-grow">
+                    <label for="fontColor" class="text-lg font-semibold mb-2">Font Color</label>
+                    <select id="fontColor" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300">
+                        <option value="#1f2937">Dark Gray</option>
+                        <option value="#9ca3af">Light Gray</option>
+                        <option value="#dc2626">Red</option>
+                        <option value="#22c55e">Green</option>
+                        <option value="#4f46e5">Indigo</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Font Family -->
+            <div class="flex items-start">
+                <input type="checkbox" id="checkFontFamily" class="mt-1.5 mr-2 rounded text-indigo-600 focus:ring-indigo-500" checked>
+                <div class="flex flex-col flex-grow">
+                    <label for="fontFamily" class="text-lg font-semibold mb-2">Font Family</label>
+                    <select id="fontFamily" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300">
+                        <option value="sans-serif">Sans-serif</option>
+                        <option value="serif">Serif</option>
+                        <option value="monospace">Monospace</option>
+                        <option value="cursive">Cursive</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Font Size -->
+            <div class="flex items-start">
+                <input type="checkbox" id="checkFontSize" class="mt-1.5 mr-2 rounded text-indigo-600 focus:ring-indigo-500" checked>
+                <div class="flex flex-col flex-grow">
+                    <label for="fontSize" class="text-lg font-semibold mb-2">Font Size (px)</label>
+                    <select id="fontSize" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300">
+                        <option value="16">16</option>
+                        <option value="20">20</option>
+                        <option value="24">24</option>
+                        <option value="32">32</option>
+                        <option value="48">48</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Text Alignment -->
+            <div class="flex items-start">
+                <input type="checkbox" id="checkTextAlign" class="mt-1.5 mr-2 rounded text-indigo-600 focus:ring-indigo-500" checked>
+                <div class="flex flex-col flex-grow">
+                    <label for="textAlign" class="text-lg font-semibold mb-2">Text Alignment</label>
+                    <select id="textAlign" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300">
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Link -->
+            <div class="flex items-start">
+                <input type="checkbox" id="checkLink" class="mt-1.5 mr-2 rounded text-indigo-600 focus:ring-indigo-500">
+                <div class="flex flex-col flex-grow">
+                    <label for="linkText" class="text-lg font-semibold mb-2">Link Text</label>
+                    <input type="text" id="linkText" placeholder="Click Me!" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300 mb-2">
+                    <label for="linkUrl" class="text-sm font-semibold mb-1">Link URL</label>
+                    <input type="text" id="linkUrl" placeholder="https://www.google.com" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300">
+                </div>
+            </div>
+            
+            <!-- Button -->
+            <div class="flex items-start">
+                <input type="checkbox" id="checkButton" class="mt-1.5 mr-2 rounded text-indigo-600 focus:ring-indigo-500">
+                <div class="flex flex-col flex-grow">
+                    <label for="buttonText" class="text-lg font-semibold mb-2">Button Text</label>
+                    <input type="text" id="buttonText" placeholder="Submit" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300">
+                </div>
+            </div>
+            
+            <!-- Image -->
+            <div class="flex items-start">
+                <input type="checkbox" id="checkImage" class="mt-1.5 mr-2 rounded text-indigo-600 focus:ring-indigo-500">
+                <div class="flex flex-col flex-grow">
+                    <label for="imageUrl" class="text-lg font-semibold mb-2">Image URL</label>
+                    <input type="text" id="imageUrl" placeholder="https://placehold.co/400x300" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300 mb-2">
+                    <label for="imageAlt" class="text-sm font-semibold mb-1">Image Alt Text</label>
+                    <input type="text" id="imageAlt" placeholder="A placeholder image" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300">
+                </div>
+            </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <button id="generateBtn" class="px-8 py-4 bg-indigo-600 text-white font-bold rounded-full shadow-lg hover:bg-indigo-700 transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">Generate Code</button>
+            <button id="resetBtn" class="px-8 py-4 bg-gray-300 text-gray-800 font-bold rounded-full shadow-lg hover:bg-gray-400 transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-opacity-50">Reset Options</button>
+        </div>
+    </div>
+
+    <!-- The Modal/Pop-up -->
+    <div id="codeModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-3xl font-bold mb-4 text-center">Your Generated Code</h2>
+            
+            <!-- Code and Preview Section -->
+            <div id="codeSection" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                <!-- Live Preview -->
+                <div class="flex flex-col">
+                    <h3 class="text-xl font-semibold mb-2 text-indigo-500">Live Preview</h3>
+                    <div id="previewArea" class="w-full min-h-[100px] border border-gray-300 rounded-lg p-4 flex items-center justify-center transition-all duration-300 flex-col space-y-4">
+                        <p id="previewText" class="break-words max-w-full text-center"></p>
+                    </div>
+                </div>
+
+                <!-- Generated Code -->
+                <div class="flex flex-col">
+                    <h3 class="text-xl font-semibold mb-2 text-indigo-500">HTML Code</h3>
+                    <pre class="bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm text-gray-800 border border-gray-300"><code id="codeArea"></code></pre>
+                </div>
+            </div>
+
+            <!-- Explanation Section -->
+            <div id="explanationSection" class="explanation-section">
+                <h3 class="text-xl font-semibold mb-2 text-indigo-500">Code Explanation</h3>
+                <div id="explanationContent"></div>
+            </div>
+            
+            <div class="flex justify-center mt-6 space-x-4">
+                <button id="copyBtn" class="px-6 py-2 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 transition-colors duration-300">Copy Code</button>
+                <button id="explainBtn" class="px-6 py-2 bg-yellow-500 text-white font-semibold rounded-full hover:bg-yellow-600 transition-colors duration-300">Explain Code</button>
+                <button id="backBtn" class="px-6 py-2 bg-yellow-500 text-white font-semibold rounded-full hover:bg-yellow-600 transition-colors duration-300" style="display: none;">Back to Code</button>
+                <button id="closeModalBtn" class="px-6 py-2 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 transition-colors duration-300">Close</button>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // Get all the necessary DOM elements
+        const generateBtn = document.getElementById('generateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const codeModal = document.getElementById('codeModal');
+        const codeSection = document.getElementById('codeSection');
+        const explanationSection = document.getElementById('explanationSection');
+        const explanationContent = document.getElementById('explanationContent');
+        const codeArea = document.getElementById('codeArea');
+        const previewArea = document.getElementById('previewArea');
+        const previewText = document.getElementById('previewText');
+        const copyBtn = document.getElementById('copyBtn');
+        const explainBtn = document.getElementById('explainBtn');
+        const backBtn = document.getElementById('backBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        // Checkbox and input elements
+        const checkText = document.getElementById('checkText');
+        const textContent = document.getElementById('textContent');
+        const checkBgColor = document.getElementById('checkBgColor');
+        const bgColor = document.getElementById('bgColor');
+        const checkFontColor = document.getElementById('checkFontColor');
+        const fontColor = document.getElementById('fontColor');
+        const checkFontFamily = document.getElementById('checkFontFamily');
+        const fontFamily = document.getElementById('fontFamily');
+        const checkFontSize = document.getElementById('checkFontSize');
+        const fontSize = document.getElementById('fontSize');
+        const checkTextAlign = document.getElementById('checkTextAlign');
+        const textAlign = document.getElementById('textAlign');
+        const checkLink = document.getElementById('checkLink');
+        const linkText = document.getElementById('linkText');
+        const linkUrl = document.getElementById('linkUrl');
+        const checkButton = document.getElementById('checkButton');
+        const buttonText = document.getElementById('buttonText');
+        const checkImage = document.getElementById('checkImage');
+        const imageUrl = document.getElementById('imageUrl');
+        const imageAlt = document.getElementById('imageAlt');
+
+        // Function to generate and display the code
+        function generateCode() {
+            // Get values from the input fields
+            const textContentValue = textContent.value || "Hello World!";
+            const bgColorValue = bgColor.value;
+            const fontColorValue = fontColor.value;
+            const fontFamilyValue = fontFamily.value;
+            const fontSizeValue = fontSize.value;
+            const textAlignValue = textAlign.value;
+            const linkTextValue = linkText.value || "Click Me!";
+            const linkUrlValue = linkUrl.value || "#";
+            const buttonTextValue = buttonText.value || "Submit";
+            const imageUrlValue = imageUrl.value || "https://placehold.co/400x300/f0f9ff/1f2937?text=Image";
+            const imageAltValue = imageAlt.value || "A placeholder image";
+
+            // Construct the HTML code string with inline styles
+            let styleString = '';
+            if (checkFontFamily.checked) styleString += `        font-family: '${fontFamilyValue}';\n`;
+            if (checkFontColor.checked) styleString += `        color: ${fontColorValue};\n`;
+            if (checkFontSize.checked) styleString += `        font-size: ${fontSizeValue}px;\n`;
+            if (checkTextAlign.checked) styleString += `        text-align: ${textAlignValue};\n`;
+            if (styleString) styleString += `        padding: 20px;\n`;
+
+            let bodyStyle = '';
+            if (checkBgColor.checked) bodyStyle = ` style="background-color: ${bgColorValue};"`;
+
+            let contentElements = '';
+            if (checkText.checked) {
+                contentElements += `        <p>${textContentValue}</p>\n`;
+            }
+            if (checkImage.checked) {
+                contentElements += `        <img src="${imageUrlValue}" alt="${imageAltValue}" style="max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 10px;">\n`;
+            }
+            if (checkLink.checked) {
+                contentElements += `        <a href="${linkUrlValue}" style="color: blue; text-decoration: underline; display: block; text-align: center;">${linkTextValue}</a>\n`;
+            }
+            if (checkButton.checked) {
+                contentElements += `        <button style="background-color: #4f46e5; color: white; padding: 10px 20px; border: none; border-radius: 9999px; cursor: pointer; display: block; margin: 20px auto;">${buttonTextValue}</button>\n`;
+            }
+
+            const generatedHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <title>My Webpage</title>
+</head>
+<body${bodyStyle}>
+    <div style="
+${styleString.trim()}
+    ">
+${contentElements.trim()}
+    </div>
+</body>
+</html>`;
+
+            // Display the code in the code area
+            codeArea.textContent = generatedHtml;
+
+            // Update the live preview
+            previewArea.style.backgroundColor = checkBgColor.checked ? bgColorValue : 'transparent';
+            
+            let previewContent = '';
+            if (checkText.checked) {
+                previewContent += `<p style="color: ${checkFontColor.checked ? fontColorValue : ''}; font-family: ${checkFontFamily.checked ? fontFamilyValue : ''}; font-size: ${checkFontSize.checked ? fontSizeValue + 'px' : ''}; text-align: ${checkTextAlign.checked ? textAlignValue : ''};">${textContentValue}</p>`;
+            }
+            if (checkImage.checked) {
+                previewContent += `<img src="${imageUrlValue}" alt="${imageAltValue}" class="max-w-full h-auto rounded-lg mx-auto">`;
+            }
+            if (checkLink.checked) {
+                previewContent += `<a href="${linkUrlValue}" class="text-indigo-600 hover:underline block text-center">${linkTextValue}</a>`;
+            }
+            if (checkButton.checked) {
+                previewContent += `<button class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-full hover:bg-indigo-700 transition-colors duration-300 transform hover:scale-105">${buttonTextValue}</button>`;
+            }
+            
+            previewArea.innerHTML = previewContent;
+
+            // Show the modal and the code/preview section
+            codeModal.style.display = 'flex';
+            codeSection.style.display = 'grid';
+            explanationSection.style.display = 'none';
+            explainBtn.style.display = 'inline-block';
+            backBtn.style.display = 'none';
+            copyBtn.style.display = 'inline-block';
+        }
+        
+        // Function to reset all options to their default values
+        function resetOptions() {
+            textContent.value = '';
+            bgColor.selectedIndex = 0;
+            fontColor.selectedIndex = 0;
+            fontFamily.selectedIndex = 0;
+            fontSize.selectedIndex = 0;
+            textAlign.selectedIndex = 0;
+            linkText.value = '';
+            linkUrl.value = '';
+            buttonText.value = '';
+            imageUrl.value = '';
+            imageAlt.value = '';
+
+            // Reset all checkboxes to be checked
+            checkText.checked = true;
+            checkBgColor.checked = true;
+            checkFontColor.checked = true;
+            checkFontFamily.checked = true;
+            checkFontSize.checked = true;
+            checkTextAlign.checked = true;
+            checkLink.checked = false;
+            checkButton.checked = false;
+            checkImage.checked = false;
+        }
+
+        // Function to generate and display the code explanation
+        function explainCode() {
+            const explanationHTML = `
+                <p class="mb-4"><strong class="text-indigo-600">&lt;!DOCTYPE html&gt;</strong>: This declaration defines that this document is an HTML5 document. It's essential for browsers to know how to render the page correctly.</p>
+                <p class="mb-4"><strong class="text-indigo-600">&lt;html&gt;</strong>: This is the root element of an HTML page. All other elements are nested inside this. It's essential.</p>
+                <p class="mb-4"><strong class="text-indigo-600">&lt;head&gt;</strong>: Contains meta-information about the HTML page, such as its title. This section is not visible on the webpage itself. It's essential.</p>
+                <p class="mb-4"><strong class="text-indigo-600">&lt;title&gt;</strong>: Specifies the title of the page, which is shown in the browser's title bar or on the page's tab. This is important for clarity and can be easily changed.</p>
+                <p class="mb-4"><strong class="text-indigo-600">&lt;body&gt;</strong>: The main content of the document is contained here. This is the visible part of the webpage. This is essential.</p>
+                <p class="mb-4"><strong class="text-indigo-600">style="..."</strong>: This is an attribute that adds inline CSS (Cascading Style Sheets) directly to an element. It controls the look and feel of the element. This is highly changeable, as you can replace the value to change the style.</p>
+                <p class="mb-4"><strong class="text-indigo-600">&lt;div&gt;</strong>: A division or section in an HTML document. It is a block-level element used to group other elements and apply styles. It's essential for structuring your content, but can be replaced with other tags like <strong class="text-indigo-600">&lt;main&gt;</strong> or <strong class="text-indigo-600">&lt;section&gt;</strong>.</p>
+                <p class="mb-4"><strong class="text-indigo-600">&lt;p&gt;</strong>: This element represents a paragraph. It's used for displaying text. It is essential for holding your text, but you could use other tags like <strong class="text-indigo-600">&lt;h1&gt;</strong> for a heading instead.</p>
+                <hr>
+                <h3 class="text-xl font-bold mt-8 mb-4">New Elements Explained:</h3>
+                <p class="mb-4"><strong class="text-indigo-600">&lt;a href="..."&gt;...&lt;/a&gt;</strong>: This is a link. It's used to navigate to another webpage. The <strong class="text-indigo-600">href</strong> attribute is essential and holds the URL of the page you want to link to. The text between the opening and closing tags is what the user clicks on.</p>
+                <p class="mb-4"><strong class="text-indigo-600">&lt;button&gt;...&lt;/button&gt;</strong>: This is a clickable button. It can be used to perform an action, like submitting a form or triggering a function. The text between the opening and closing tags is the button's label.</p>
+                <p class="mb-4"><strong class="text-indigo-600">&lt;img src="..." alt="..."&gt;</strong>: This is an image tag. The <strong class="text-indigo-600">src</strong> attribute is essential and specifies the image's source URL. The <strong class="text-indigo-600">alt</strong> attribute is also important for accessibility and tells screen readers what the image is about if it cannot be displayed.</p>
+            `;
+            explanationContent.innerHTML = explanationHTML;
+            
+            // Toggle view to show explanation
+            codeSection.style.display = 'none';
+            explanationSection.style.display = 'flex';
+            explainBtn.style.display = 'none';
+            backBtn.style.display = 'inline-block';
+            copyBtn.style.display = 'none';
+        }
+        
+        // Add event listeners
+        generateBtn.addEventListener('click', generateCode);
+        resetBtn.addEventListener('click', resetOptions);
+        closeModalBtn.addEventListener('click', () => {
+            codeModal.style.display = 'none';
+        });
+        explainBtn.addEventListener('click', explainCode);
+        backBtn.addEventListener('click', () => {
+            codeSection.style.display = 'grid';
+            explanationSection.style.display = 'none';
+            explainBtn.style.display = 'inline-block';
+            backBtn.style.display = 'none';
+            copyBtn.style.display = 'inline-block';
+        });
+        copyBtn.addEventListener('click', () => {
+            try {
+                const range = document.createRange();
+                range.selectNode(codeArea);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                document.execCommand('copy');
+                window.getSelection().removeAllRanges();
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy Code';
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        });
+    </script>
+</body>
+</html>
