@@ -1,0 +1,695 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Learn & Build Pathway</title>
+    <style>
+        :root {
+            --primary: #58cc02; /* Duolingo Green */
+            --primary-hover: #46a302;
+            --secondary: #ce82ff; /* Fun Purple */
+            --bg-page: #ffffff;
+            --bg-card: #f7f7f7;
+            --text-main: #3c3c3c;
+            --text-muted: #777777;
+            --border-color: #e5e5e5;
+            --locked-color: #e5e5e5;
+            --locked-text: #afafaf;
+            --focus-ring: rgba(88, 204, 2, 0.4);
+            --error: #ff4b4b;
+            --code-bg: #282c34;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            margin: 0; padding: 0;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+        }
+
+        /* --- Navigation & Header --- */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 24px; border-bottom: 2px solid var(--border-color);
+            position: sticky; top: 0; background: white; z-index: 10;
+        }
+        .logo { font-size: 24px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+        .stats { display: flex; align-items: center; gap: 16px; font-weight: 700; color: #ff9600; }
+        .nav-tabs { display: flex; gap: 12px; }
+        .tab-btn {
+            padding: 10px 20px; border-radius: 16px; font-weight: 700; cursor: pointer;
+            border: 2px solid transparent; background: transparent; color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .tab-btn.active { background: rgba(88, 204, 2, 0.1); color: var(--primary); border-color: var(--primary); }
+
+        /* --- View Containers --- */
+        .view-container { display: none; flex-direction: column; align-items: center; padding: 40px 20px; flex: 1; }
+        .view-container.active { display: flex; }
+
+        /* --- Pathway View (Gamified) --- */
+        .pathway-container {
+            position: relative; width: 100%; max-width: 400px;
+            display: flex; flex-direction: column; align-items: center; gap: 40px; padding-bottom: 60px;
+        }
+        .pathway-container::before {
+            content: ''; position: absolute; top: 40px; bottom: 40px; left: 50%;
+            transform: translateX(-50%); width: 12px; background-color: var(--locked-color); z-index: 0; border-radius: 10px;
+        }
+        .level-node {
+            position: relative; z-index: 1; width: 80px; height: 80px; border-radius: 50%;
+            background-color: var(--locked-color); display: flex; justify-content: center; align-items: center;
+            font-size: 32px; cursor: pointer; box-shadow: 0 6px 0 rgba(0,0,0,0.1); transition: transform 0.2s;
+        }
+        .level-node:nth-child(odd) { margin-left: -120px; }
+        .level-node:nth-child(even) { margin-right: -120px; }
+        .level-node.completed { background-color: #ffc800; box-shadow: 0 6px 0 #d4a600; }
+        .level-node.current { background-color: var(--primary); box-shadow: 0 6px 0 var(--primary-hover); animation: pulse 2s infinite; }
+        .level-node.locked { cursor: not-allowed; opacity: 0.8; }
+        .level-node:active:not(.locked) { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+        .level-tooltip {
+            position: absolute; top: -40px; background: white; padding: 6px 12px; border-radius: 8px;
+            border: 2px solid var(--border-color); font-weight: 700; font-size: 14px; white-space: nowrap;
+            color: var(--text-main); opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        }
+        .level-node:hover .level-tooltip { opacity: 1; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 6px 0 var(--primary-hover), 0 0 0 0 rgba(88, 204, 2, 0.4); }
+            70% { box-shadow: 0 6px 0 var(--primary-hover), 0 0 0 20px rgba(88, 204, 2, 0); }
+            100% { box-shadow: 0 6px 0 var(--primary-hover), 0 0 0 0 rgba(88, 204, 2, 0); }
+        }
+
+        /* --- Lesson Modal & Step Layout --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: white; z-index: 100; display: none; flex-direction: column;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-header { padding: 20px; display: flex; align-items: center; gap: 20px; }
+        .progress-bar-bg { flex: 1; height: 16px; background: var(--border-color); border-radius: 8px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s ease; }
+        .btn-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
+        
+        .modal-content { flex: 1; max-width: 700px; margin: 0 auto; width: 100%; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        .lesson-title { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--primary); }
+        
+        /* Step Containers */
+        .step-container { display: none; animation: fadeIn 0.3s ease; flex-direction: column; gap: 20px; }
+        .step-container.active { display: flex; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .info-card {
+            background: #f0fdf4; border: 2px solid #bbf7d0; padding: 24px; border-radius: 16px; font-size: 18px; line-height: 1.6;
+        }
+        .instruction-text { font-size: 20px; font-weight: 700; color: var(--text-main); }
+        
+        code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 6px; font-family: monospace; color: var(--secondary); font-weight: bold; }
+        
+        /* Quiz Styles */
+        .quiz-options { display: flex; flex-direction: column; gap: 12px; }
+        .quiz-btn {
+            padding: 16px; border: 2px solid var(--border-color); border-radius: 16px; background: white;
+            font-size: 18px; font-weight: 600; cursor: pointer; text-align: left; transition: all 0.2s; color: var(--text-main);
+        }
+        .quiz-btn:hover { background: var(--bg-card); }
+        .quiz-btn.selected { border-color: #38bdf8; background: #e0f2fe; color: #0284c7; }
+        .quiz-btn.correct { border-color: var(--primary); background: #dcfce7; color: #166534; }
+        .quiz-btn.wrong { border-color: var(--error); background: #fee2e2; color: #991b1b; animation: shake 0.4s; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } }
+
+        /* Code Typing Styles */
+        .code-input-wrapper { background: var(--code-bg); padding: 20px; border-radius: 16px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.2); }
+        .code-textarea {
+            width: 100%; background: transparent; border: none; color: #61afef; font-family: monospace; font-size: 18px; resize: vertical; min-height: 80px; outline: none; line-height: 1.5;
+        }
+        .mini-preview-card { border: 2px solid var(--border-color); border-radius: 12px; padding: 16px; min-height: 60px; margin-top: 10px; background: white; }
+        .mini-preview-label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+        .error-hint { color: var(--error); font-weight: bold; background: #fee2e2; padding: 12px; border-radius: 8px; display: none; margin-top: 10px; }
+
+        /* Footer Check Button */
+        .modal-footer { padding: 20px; border-top: 2px solid var(--border-color); display: flex; justify-content: center; background: white; }
+        .btn-check {
+            background: var(--locked-color); color: var(--locked-text); border: none; padding: 16px 40px; border-radius: 20px;
+            font-size: 18px; font-weight: 800; width: 100%; max-width: 600px; cursor: not-allowed; text-transform: uppercase; transition: all 0.2s;
+        }
+        .btn-check.active { background: var(--primary); color: white; cursor: pointer; box-shadow: 0 4px 0 var(--primary-hover); }
+        .btn-check.active:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+
+        /* --- Sandbox Builder UI --- */
+        .builder-wrapper { background-color: var(--bg-card); border-radius: 16px; border: 2px solid var(--border-color); max-width: 800px; width: 100%; padding: 30px; }
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .label-row { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+        
+        /* Base Form Inputs */
+        input[type="text"], input[type="url"], textarea, select {
+            width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 14px; font-family: inherit; transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--secondary); }
+        
+        .sub-label { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-top: 4px; }
+        .builder-btns { display: flex; gap: 12px; margin-top: 30px; }
+        .btn-generate { flex: 1; background: var(--secondary); color: white; border: none; padding: 14px; border-radius: 16px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 4px 0 #a95ccf; }
+        .btn-generate:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+        
+        .results-container { margin-top: 30px; display: none; }
+        .preview-area { border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; background: white; min-height: 100px; margin-bottom: 20px; }
+        .code-area { background: var(--code-bg); color: #abb2bf; padding: 20px; border-radius: 12px; font-family: monospace; overflow-x: auto; }
+        .boss-alert { background: #fffbe2; border: 2px solid #ffc800; color: #b38b00; padding: 16px; border-radius: 12px; font-weight: 700; margin-bottom: 20px; display: none; align-items: center; gap: 10px; }
+
+        .glossary-card { background: white; border: 2px solid var(--border-color); padding: 16px; border-radius: 12px; text-align: left; }
+        .glossary-term { color: var(--secondary); font-size: 18px; font-weight: 800; margin-bottom: 8px; display: block; }
+
+        @media (max-width: 640px) { .grid-layout { grid-template-columns: 1fr; } .nav-tabs { font-size: 14px; } }
+    </style>
+</head>
+<body>
+
+<!-- Header Navigation -->
+<header>
+    <div class="logo">HTMLearna</div>
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchView('pathway')">🗺️ Pathway</button>
+        <button class="tab-btn" onclick="switchView('builder')">🛠️ Sandbox</button>
+        <button class="tab-btn" onclick="switchView('info')">ℹ️ Info</button>
+    </div>
+    <div class="stats"><span>⭐ <span id="xp-counter">0</span> XP</span></div>
+</header>
+
+<!-- VIEW 1: The Learning Pathway -->
+<div id="view-pathway" class="view-container active">
+    <div style="text-align: center; margin-bottom: 40px;">
+        <h1 style="margin: 0; color: var(--text-main);">Learn to Code HTML</h1>
+        <p style="color: var(--text-muted);">Complete interactive lessons to unlock the Boss challenge!</p>
+    </div>
+    <div class="pathway-container" id="pathway-map"></div>
+</div>
+
+<!-- VIEW 2: The Sandbox Builder -->
+<div id="view-builder" class="view-container">
+    <div class="boss-alert" id="boss-alert">
+        🏆 BOSS CHALLENGE: Generate an element with a "Light Green" Background AND a Clickable Button!
+    </div>
+
+    <div class="builder-wrapper">
+        <h2 style="margin-top:0;">Sandbox Builder</h2>
+        <form id="builder-form" onsubmit="event.preventDefault();">
+            <div class="grid-layout">
+                <div class="input-group">
+                    <div class="label-row"><input type="checkbox" id="use-text" checked> <label for="use-text">Text to Display</label></div>
+                    <textarea id="val-text">Mummy Mummy Mumberblocks</textarea>
+                </div>
+                <div class="input-group">
+                    <div class="label-row"><input type="checkbox" id="use-bg" checked> <label for="use-bg">Background Color</label></div>
+                    <select id="val-bg">
+                        <option value="#ffffe0">Light Yellow</option>
+                        <option value="#add8e6">Light Blue</option>
+                        <option value="#f0fff0">Light Green</option>
+                        <option value="#ffffff">White</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <div class="label-row"><input type="checkbox" id="use-link" checked> <label for="use-link">Link Text</label></div>
+                    <input type="text" id="val-link-text" value="Mummy plays Mumberblocks">
+                    <div class="sub-label">Link URL</div>
+                    <input type="url" id="val-link-url" value="https://www.google.com">
+                </div>
+                <div class="input-group">
+                    <div class="label-row"><input type="checkbox" id="use-btn" checked> <label for="use-btn">Button Text</label></div>
+                    <input type="text" id="val-btn-text" value="Play Mumberblocks">
+                    <div class="sub-label">Button Function (JavaScript)</div>
+                    <input type="text" id="val-btn-func" value="alert('Starting Mumberblocks!');">
+                </div>
+                <div class="input-group">
+                    <div class="label-row"><input type="checkbox" id="use-img" checked> <label for="use-img">Image URL</label></div>
+                    <input type="text" id="val-img-url" value="https://mumberblocks.com/logo.png">
+                    <div class="sub-label">Image Alt Text</div>
+                    <input type="text" id="val-img-alt" value="Mummy">
+                </div>
+            </div>
+            <div class="builder-btns"><button type="button" class="btn-generate" onclick="generateCode()">✨ Generate Code</button></div>
+        </form>
+        <div class="results-container" id="results">
+            <h3 style="color:var(--secondary);">Live Preview</h3>
+            <div class="preview-area" id="live-preview"></div>
+            <h3 style="color:var(--secondary);">Generated HTML Code</h3>
+            <pre class="code-area" id="code-output"></pre>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW 3: Information & Glossary -->
+<div id="view-info" class="view-container">
+    <div class="builder-wrapper" style="text-align: left;">
+        <h2 style="margin-top:0; color: var(--primary);">What is Code?</h2>
+        <div class="info-card" style="margin-bottom: 30px;">
+            <p><b>Code</b> is a set of instructions that tells a computer what to do. However, different types of code do completely different jobs!</p>
+            <ul style="line-height: 1.8;">
+                <li><b>HTML (Markup Language):</b> HTML stands for HyperText Markup Language. It is <i>not</i> a programming language; it is a structural language. Think of HTML like the bricks, wood, and blueprint of a house. It tells the browser where to put text, images, and links.</li>
+                <li><b>Python / JavaScript / C++ (Programming Languages):</b> These are true programming languages. They handle logic, math, memory, and decision-making. If HTML is the blueprint of the house, programming languages are the electricity and plumbing that make the house actually do things.</li>
+                <li><b>CSS (Style Sheet):</b> Used alongside HTML, CSS is like the paint, wallpaper, and interior design of the house. It makes the HTML look pretty!</li>
+            </ul>
+        </div>
+
+        <h2 style="color: var(--secondary);">HTML Glossary</h2>
+        <div class="grid-layout">
+            <div class="glossary-card">
+                <span class="glossary-term">Tag</span>
+                The basic building block of HTML. They are wrapped in angle brackets. Almost all tags come in pairs (opening and closing).<br><br><i>Example: <code>&lt;p&gt;</code> and <code>&lt;/p&gt;</code></i>
+            </div>
+            <div class="glossary-card">
+                <span class="glossary-term">Element</span>
+                An entire block of HTML, including the opening tag, the content inside, and the closing tag.<br><br><i>Example: <code>&lt;p&gt;Hello&lt;/p&gt;</code></i>
+            </div>
+            <div class="glossary-card">
+                <span class="glossary-term">Attribute</span>
+                Extra information added inside an opening tag to change how it behaves or looks.<br><br><i>Example: <code>src</code> or <code>href</code></i>
+            </div>
+            <div class="glossary-card">
+                <span class="glossary-term">href</span>
+                Stands for "Hypertext Reference". It is the attribute used in links (<code>&lt;a&gt;</code>) to tell the browser what website URL to go to.
+            </div>
+            <div class="glossary-card">
+                <span class="glossary-term">src</span>
+                Stands for "Source". It is the attribute used in images (<code>&lt;img&gt;</code>) to tell the browser where the picture file is located.
+            </div>
+            <div class="glossary-card">
+                <span class="glossary-term">Syntax</span>
+                The "grammar" or spelling rules of code. If your syntax is wrong (like forgetting a closing bracket <code>&gt;</code>), the computer won't understand you!
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Interactive Lessons -->
+<div class="modal-overlay" id="lesson-modal">
+    <div class="modal-header">
+        <button class="btn-close" onclick="closeLesson()">✖</button>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="lesson-progress"></div></div>
+    </div>
+    
+    <div class="modal-content">
+        <h2 class="lesson-title" id="lesson-title">Lesson Title</h2>
+        
+        <!-- Type 1: Information Step -->
+        <div id="step-info" class="step-container">
+            <div class="info-card" id="info-content"></div>
+        </div>
+
+        <!-- Type 2: Quiz Step -->
+        <div id="step-quiz" class="step-container">
+            <div class="instruction-text" id="quiz-question"></div>
+            <div class="quiz-options" id="quiz-options"></div>
+        </div>
+
+        <!-- Type 3: Code Typing Step -->
+        <div id="step-code" class="step-container">
+            <div class="instruction-text" id="code-instruction"></div>
+            <div class="code-input-wrapper">
+                <textarea class="code-textarea" id="code-input" spellcheck="false" placeholder="Type your code here..."></textarea>
+            </div>
+            <div class="mini-preview-card">
+                <div class="mini-preview-label">Live Output:</div>
+                <div id="code-mini-preview"></div>
+            </div>
+            <div class="error-hint" id="code-hint"></div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn-check" id="btn-check" onclick="checkStep()">CONTINUE</button>
+    </div>
+</div>
+
+<script>
+    // --- STATE MANAGEMENT ---
+    let state = {
+        unlockedLevel: 1,
+        xp: 0,
+        activeLesson: null,
+        currentStepIndex: 0,
+        selectedAnswerIndex: null,
+        stepStatus: 'answering' // 'answering', 'correct', 'wrong'
+    };
+
+    // --- CURRICULUM DATA ---
+    const levels = [
+        {
+            id: 1, icon: '📝', title: 'Intro to Tags',
+            steps: [
+                { type: 'info', content: 'HTML uses <b>tags</b> to build websites. Tags usually come in pairs wrapped in angle brackets. For example, a paragraph starts with <code>&lt;p&gt;</code> and ends with <code>&lt;/p&gt;</code>.' },
+                { type: 'quiz', question: 'Which is a valid closing tag?', options: ['&lt;p&gt;', '&lt;/p&gt;', '{/p}'], correctIndex: 1 },
+                { type: 'code', instruction: 'Create a paragraph tag that says "Hello"', 
+                  hint: 'Make sure it looks like this: <p>Hello</p>',
+                  validate: (text) => text.includes('<p>') && text.includes('</p>') && /Hello/i.test(text) }
+            ]
+        },
+        {
+            id: 2, icon: '🔗', title: 'Adding Links',
+            steps: [
+                { type: 'info', content: 'To make text clickable, we use the anchor tag <code>&lt;a&gt;</code>. To tell the link where to go, we add an attribute called <b>href</b> inside the opening tag.<br><br>Example: <code>&lt;a href="https://google.com"&gt;Click Me&lt;/a&gt;</code>' },
+                { type: 'code', instruction: 'Create a link to "https://bing.com" that says "Search"',
+                  hint: 'Use <a href="...">...</a>',
+                  validate: (text) => text.includes('<a') && text.includes('href') && text.includes('bing.com') && text.includes('</a>') && text.includes('Search') }
+            ]
+        },
+        {
+            id: 3, icon: '🖼️', title: 'Pictures & Images',
+            steps: [
+                { type: 'info', content: '<b>Where do images come from?</b><br>You can\'t paste a photo directly into HTML code. Instead, images must be hosted on a server (like Imgur or your own website), and HTML loads them via a URL.<br><br>We use the <code>&lt;img&gt;</code> tag. It does not need a closing tag! We use the <b>src</b> (source) attribute to give it the URL.' },
+                { type: 'quiz', question: 'Which attribute tells the image tag where the picture is located?', options: ['href', 'src', 'link'], correctIndex: 1 },
+                { type: 'code', instruction: 'Write an image tag with a src of "cat.jpg"',
+                  hint: 'It should look like <img src="cat.jpg">',
+                  validate: (text) => text.includes('<img') && text.includes('src=') && text.includes('cat.jpg') }
+            ]
+        },
+        {
+            id: 4, icon: '🎨', title: 'Buttons & Alerts',
+            steps: [
+                { type: 'info', content: 'A <code>&lt;button&gt;</code> tag creates a clickable button.<br><br><b>What can it do?</b> Using the <code>onclick</code> attribute, we can trigger JavaScript code! For example, <code>onclick="alert(\'Hi\')"</code> makes a popup message appear when clicked.' },
+                { type: 'code', instruction: 'Create a button that says "Push" and triggers an alert saying "Boo"',
+                  hint: 'Use <button onclick="alert(\'Boo\')">Push</button>',
+                  validate: (text) => text.includes('<button') && text.includes('onclick=') && text.includes('alert') && text.includes('Boo') && text.includes('Push') }
+            ]
+        },
+        {
+            id: 5, icon: '🚀', title: 'Button Links',
+            steps: [
+                { type: 'info', content: '<b>Can a button open a link?</b><br>Yes! Instead of <code>alert()</code>, you can use <code>window.open(\'URL\')</code> inside the onclick attribute. This makes the button act like a super-powered link.' },
+                { type: 'code', instruction: 'Make a button saying "Go" that opens "https://google.com"',
+                  hint: 'Use <button onclick="window.open(\'https://google.com\')">Go</button>',
+                  validate: (text) => text.includes('<button') && text.includes('onclick=') && text.includes('window.open') && text.includes('google.com') && text.includes('Go') }
+            ]
+        },
+        {
+            id: 6, icon: '👹', title: 'Boss Challenge!',
+            steps: [
+                { type: 'info', content: 'You are ready for the final test! Head over to the Sandbox Builder.<br><br><b>Your Task:</b> Generate an element with a <b>Light Green</b> background that contains a <b>Button</b>.', isBoss: true }
+            ]
+        }
+    ];
+
+    // --- INIT ---
+    function init() { renderPathway(); }
+
+    // --- NAVIGATION ---
+    function switchView(viewName) {
+        document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(`view-${viewName}`).classList.add('active');
+        
+        let tabIndex = 0;
+        if (viewName === 'builder') tabIndex = 1;
+        if (viewName === 'info') tabIndex = 2;
+        
+        document.querySelectorAll('.tab-btn')[tabIndex].classList.add('active');
+
+        if (viewName === 'builder' && state.unlockedLevel === 6) {
+            document.getElementById('boss-alert').style.display = 'flex';
+        } else {
+            document.getElementById('boss-alert').style.display = 'none';
+        }
+    }
+
+    // --- PATHWAY LOGIC ---
+    function renderPathway() {
+        const container = document.getElementById('pathway-map');
+        container.innerHTML = '';
+        levels.forEach((lvl) => {
+            const isUnlocked = lvl.id <= state.unlockedLevel;
+            const isCompleted = lvl.id < state.unlockedLevel;
+            const isCurrent = lvl.id === state.unlockedLevel;
+
+            let statusClass = isCompleted ? 'completed' : (isCurrent ? 'current' : 'locked');
+            let displayIcon = isUnlocked ? lvl.icon : '🔒';
+            if (isCompleted) displayIcon = '✅';
+
+            const node = document.createElement('div');
+            node.className = `level-node ${statusClass}`;
+            node.innerHTML = `${displayIcon}<div class="level-tooltip">Level ${lvl.id}: ${lvl.title}</div>`;
+            if (isUnlocked) node.onclick = () => openLesson(lvl.id);
+            container.appendChild(node);
+        });
+    }
+
+    // --- LESSON MODAL LOGIC ---
+    function openLesson(id) {
+        state.activeLesson = levels.find(l => l.id === id);
+        state.currentStepIndex = 0;
+        document.getElementById('lesson-title').innerText = `Level ${state.activeLesson.id}: ${state.activeLesson.title}`;
+        document.getElementById('lesson-modal').classList.add('active');
+        renderStep();
+    }
+
+    function renderStep() {
+        const step = state.activeLesson.steps[state.currentStepIndex];
+        state.stepStatus = 'answering';
+        state.selectedAnswerIndex = null;
+
+        // Reset UI
+        document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+        document.getElementById('code-input').value = '';
+        document.getElementById('code-mini-preview').innerHTML = '';
+        document.getElementById('code-hint').style.display = 'none';
+        
+        // Update Progress Bar
+        const progressPct = ((state.currentStepIndex) / state.activeLesson.steps.length) * 100;
+        document.getElementById('lesson-progress').style.width = `${progressPct}%`;
+
+        const checkBtn = document.getElementById('btn-check');
+        checkBtn.className = "btn-check active"; 
+        checkBtn.style.backgroundColor = "";
+
+        if (step.type === 'info') {
+            document.getElementById('step-info').classList.add('active');
+            document.getElementById('info-content').innerHTML = step.content;
+            checkBtn.innerText = "CONTINUE";
+        } 
+        else if (step.type === 'quiz') {
+            document.getElementById('step-quiz').classList.add('active');
+            document.getElementById('quiz-question').innerHTML = step.question;
+            const optsContainer = document.getElementById('quiz-options');
+            optsContainer.innerHTML = '';
+            step.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-btn'; btn.innerHTML = opt;
+                btn.onclick = () => selectQuizOption(idx, btn);
+                optsContainer.appendChild(btn);
+            });
+            checkBtn.className = "btn-check"; // Disable until picked
+            checkBtn.innerText = "CHECK";
+        }
+        else if (step.type === 'code') {
+            document.getElementById('step-code').classList.add('active');
+            document.getElementById('code-instruction').innerHTML = step.instruction;
+            checkBtn.innerText = "CHECK";
+            // Focus textarea
+            setTimeout(() => document.getElementById('code-input').focus(), 100);
+        }
+    }
+
+    function selectQuizOption(index, btnElement) {
+        if (state.stepStatus !== 'answering') return;
+        state.selectedAnswerIndex = index;
+        document.querySelectorAll('.quiz-btn').forEach(b => b.classList.remove('selected'));
+        btnElement.classList.add('selected');
+        document.getElementById('btn-check').classList.add('active');
+    }
+
+    // Mini Live Preview for Code Typing
+    document.getElementById('code-input').addEventListener('input', (e) => {
+        document.getElementById('code-mini-preview').innerHTML = e.target.value;
+        document.getElementById('code-hint').style.display = 'none'; // hide hint on type
+    });
+
+    function checkStep() {
+        const step = state.activeLesson.steps[state.currentStepIndex];
+        const checkBtn = document.getElementById('btn-check');
+
+        // Boss Redirect logic
+        if (step.isBoss) {
+            closeLesson(); switchView('builder'); return;
+        }
+
+        // If currently answering, evaluate logic
+        if (state.stepStatus === 'answering') {
+            if (step.type === 'info') {
+                proceedToNextStep(); return;
+            }
+            
+            if (step.type === 'quiz') {
+                if (state.selectedAnswerIndex === null) return;
+                const optionsBtns = document.querySelectorAll('.quiz-btn');
+                const selectedBtn = optionsBtns[state.selectedAnswerIndex];
+                
+                if (state.selectedAnswerIndex === step.correctIndex) {
+                    selectedBtn.classList.replace('selected', 'correct');
+                    markCorrect(checkBtn);
+                } else {
+                    selectedBtn.classList.replace('selected', 'wrong');
+                    setTimeout(() => selectedBtn.classList.remove('wrong'), 500);
+                    markWrong(checkBtn);
+                }
+            }
+            
+            if (step.type === 'code') {
+                const inputVal = document.getElementById('code-input').value;
+                if (step.validate(inputVal)) {
+                    markCorrect(checkBtn);
+                } else {
+                    document.getElementById('code-hint').innerText = "Hint: " + step.hint;
+                    document.getElementById('code-hint').style.display = 'block';
+                    markWrong(checkBtn);
+                }
+            }
+        } 
+        // Transition to next state
+        else if (state.stepStatus === 'correct') {
+            proceedToNextStep();
+        } 
+        else if (state.stepStatus === 'wrong') {
+            // Reset to try again
+            state.stepStatus = 'answering';
+            checkBtn.innerText = "CHECK";
+            checkBtn.style.backgroundColor = "";
+            if(step.type === 'quiz') {
+                state.selectedAnswerIndex = null;
+                document.querySelectorAll('.quiz-btn').forEach(b => b.classList.remove('selected'));
+                checkBtn.classList.remove('active');
+            }
+        }
+    }
+
+    function markCorrect(btn) {
+        state.stepStatus = 'correct';
+        btn.innerText = "CONTINUE";
+        btn.style.backgroundColor = "var(--primary)";
+        addXP(10);
+    }
+
+    function markWrong(btn) {
+        state.stepStatus = 'wrong';
+        btn.innerText = "TRY AGAIN";
+        btn.style.backgroundColor = "var(--error)";
+    }
+
+    function proceedToNextStep() {
+        state.currentStepIndex++;
+        if (state.currentStepIndex < state.activeLesson.steps.length) {
+            renderStep();
+        } else {
+            completeLesson();
+        }
+    }
+
+    function completeLesson() {
+        if (state.activeLesson.id === state.unlockedLevel && state.unlockedLevel < levels.length) {
+            state.unlockedLevel++;
+        }
+        addXP(20); // Completion bonus
+        closeLesson();
+        renderPathway();
+    }
+
+    function closeLesson() { document.getElementById('lesson-modal').classList.remove('active'); }
+    
+    function addXP(amount) {
+        state.xp += amount;
+        document.getElementById('xp-counter').innerText = state.xp;
+    }
+
+    // --- AUTO-REPLACE "break" to "brekke" (Applies to all inputs globally) ---
+    document.addEventListener('input', function(e) {
+        const target = e.target;
+        if (target.tagName === 'TEXTAREA' || (target.tagName === 'INPUT' && (target.type === 'text' || target.type === 'url'))) {
+            const originalText = target.value;
+            if (/break/i.test(originalText)) {
+                const cursorPosition = target.selectionStart;
+                const textBeforeCursor = originalText.substring(0, cursorPosition);
+                const textAfterCursor = originalText.substring(cursorPosition);
+                
+                const newTextBefore = textBeforeCursor.replace(/break/gi, 'brekke');
+                const newTextAfter = textAfterCursor.replace(/break/gi, 'brekke');
+                
+                target.value = newTextBefore + newTextAfter;
+                target.setSelectionRange(newTextBefore.length, newTextBefore.length);
+                
+                // Trigger live preview update if in code editor
+                if(target.id === 'code-input') {
+                    document.getElementById('code-mini-preview').innerHTML = target.value;
+                }
+            }
+        }
+    });
+
+    // --- SANDBOX BUILDER GENERATION & BOSS CHECK ---
+    function generateCode() {
+        let styles = []; let innerHtmlContent = "";
+        const bgInput = document.getElementById('val-bg').value;
+        const useBg = document.getElementById('use-bg').checked;
+        const useBtn = document.getElementById('use-btn').checked;
+
+        if (useBg) styles.push(`background-color: ${bgInput};`);
+
+        if (document.getElementById('use-text').checked) {
+            let text = document.getElementById('val-text').value.replace(/\n/g, '<br>\n    ');
+            innerHtmlContent += `  <p>${text}</p>\n`;
+        }
+        if (document.getElementById('use-link').checked) {
+            let linkText = document.getElementById('val-link-text').value;
+            let linkUrl = document.getElementById('val-link-url').value;
+            innerHtmlContent += `  <a href="${linkUrl}" target="_blank">${linkText}</a><br><br>\n`;
+        }
+        if (useBtn) {
+            let btnText = document.getElementById('val-btn-text').value;
+            let btnFunc = document.getElementById('val-btn-func').value.replace(/"/g, "'");
+            innerHtmlContent += `  <button onclick="${btnFunc}">${btnText}</button><br><br>\n`;
+        }
+        if (document.getElementById('use-img').checked) {
+            let imgUrl = document.getElementById('val-img-url').value;
+            let imgAlt = document.getElementById('val-img-alt').value;
+            innerHtmlContent += `  <img src="${imgUrl}" alt="${imgAlt}" style="max-width: 100%; border-radius: 8px;">\n`;
+        }
+
+        let styleString = styles.length > 0 ? ` style="${styles.join(' ')}"` : "";
+        let finalHtml = `<div${styleString} style="padding: 20px;">\n${innerHtmlContent}</div>`;
+
+        document.getElementById('live-preview').innerHTML = finalHtml;
+        document.getElementById('code-output').textContent = finalHtml;
+        document.getElementById('results').style.display = 'block';
+        
+        // BOSS CHECK (Level 6)
+        if (state.unlockedLevel === 6) {
+            if (useBg && bgInput === '#f0fff0' && useBtn) {
+                setTimeout(() => {
+                    alert("🎉 YOU BEAT THE BOSS CHALLENGE! 🎉\nYou generated code with a light green background and a button. You are an HTML Master!");
+                    addXP(100);
+                    state.unlockedLevel = 7; // Complete boss
+                    document.getElementById('boss-alert').innerText = "🏆 BOSS CHALLENGE DEFEATED! 🏆";
+                    document.getElementById('boss-alert').style.backgroundColor = "#dcfce7";
+                    document.getElementById('boss-alert').style.borderColor = "var(--primary)";
+                    document.getElementById('boss-alert').style.color = "#166534";
+                    renderPathway();
+                }, 300); 
+            }
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
+
+
+
+```
